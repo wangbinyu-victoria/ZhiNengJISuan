@@ -1,0 +1,120 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[7]:
+
+
+# coding: utf-8
+import math
+import numpy as np
+import random
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
+from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt1
+ 
+# ----------------------PSO参数设置---------------------------------
+class PSO():
+    def __init__(self, pN, dim, max_iter):
+        self.w = 0.8
+        self.c1 = 2
+        self.c2 = 2
+        self.r1 = 0.6
+        self.r2 = 0.3
+        self.pN = pN  # 粒子数量
+        self.dim = dim  # 搜索维度
+        self.max_iter = max_iter  # 迭代次数
+        self.X = np.zeros((self.pN, self.dim))  # 所有粒子的位置和速度
+        self.V = np.zeros((self.pN, self.dim))
+        self.pbest = np.zeros((self.pN, self.dim))  # 个体经历的最佳位置和全局最佳位置
+        self.gbest = np.zeros((1, self.dim))
+        self.p_fit = np.zeros(self.pN)  # 每个个体的历史最佳适应值
+        self.fit = 1e10  # 全局最佳适应值
+
+    # ---------------------目标函数Sphere函数-----------------------------
+    def function(self, x):
+        fun = 0
+        for i in x:
+            fun = fun + (2*(i**2 - 9)**2)/81+0.3*i
+        return fun
+
+    # ---------------------初始化种群----------------------------------
+    def init_Population(self):
+        for i in range(self.pN):
+            for j in range(self.dim):
+                self.X[i][j] = random.uniform(-5, 5)
+                self.V[i][j] = random.uniform(-5, 5)
+            self.pbest[i] = self.X[i]
+            tmp = self.function(self.X[i])
+            self.p_fit[i] = tmp
+            if tmp < self.fit:
+                self.fit = tmp
+                self.gbest = self.X[i]
+
+# ----------------------更新粒子位置----------------------------------
+ 
+    def iterator(self):
+        fitness = []
+        gbestness = []
+        for t in range(self.max_iter):
+            gbestness.append(self.gbest)
+            fitness.append(self.fit)
+            for i in range(self.pN):  # 更新gbest\pbest
+                temp = self.function(self.X[i])
+                if temp < self.p_fit[i]:  # 更新个体最优
+                    self.p_fit[i] = temp
+                    self.pbest[i] = self.X[i]
+                    if self.p_fit[i] < self.fit:  # 更新全局最优
+                        self.gbest = self.X[i]        
+                        self.fit = self.p_fit[i]
+            for i in range(self.pN):
+                self.V[i] = self.w * self.V[i] + self.c1 * self.r1 * (self.pbest[i] - self.X[i]) +                             self.c2 * self.r2 * (self.gbest - self.X[i])
+                self.X[i] = self.X[i] + self.V[i]
+            print(self.gbest, self.function(self.gbest))
+        return fitness
+ 
+        # ----------------------程序执行-----------------------
+
+x1 = np.linspace(-5, 5, 1000)
+
+a = np.cos(x1)
+y1 = np.array((2*(x1**2 - 9)**2)/81+0.3*x1)
+plt1.figure(figsize=(16,9))
+plt1.plot(x1,y1,label="one-dimemsional" ,color='black',linewidth=2)
+plt1.title("funtion graphics")
+plt1.ylim(-2,10)
+# plt1.xlim(-100,100)
+plt1.xlim(-5,5)
+plt1.legend()
+plt1.show()
+
+
+ # -------------------画图--------------------
+fig = plt.figure()
+ax = Axes3D(fig)
+x1=np.arange(-5,5,0.05)
+x2=np.arange(-5,5,0.05)
+X, Y = np.meshgrid(x1, x2)#网格的创建，这个是关键
+Z=(2*(np.array(X)**2 - 9) ** 2)/81+0.3*np.array(X) + (2*(np.array(Y)**2 - 9) ** 2)/81+0.3*np.array(Y)
+plt.xlabel('x')
+plt.ylabel('y')
+ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap='rainbow')
+plt.show()
+
+
+my_pso = PSO(pN=20, dim=1, max_iter=50)
+my_pso.init_Population()   
+fitness = my_pso.iterator()
+
+plt.figure(1)
+plt.title("Figure1")
+plt.xlabel("iterators", size=14)
+plt.ylabel("fitness", size=14)
+t = np.array([t for t in range(0, 50)])
+fitness = np.array(fitness)
+plt.plot(t, fitness, color='b', linewidth=1)
+plt.show()
+
+
+
